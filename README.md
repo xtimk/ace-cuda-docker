@@ -1,20 +1,26 @@
 # Ace dockerfile using NVIDIA cuda
 Ace Step dockerfile that enables GPU accelerated processing.
 
+I created this repo just for testing out the nvidia docker images integrations and how it works.
+
+The dockerfile is structured accordingly so that you can specify as arguments the versions of cuda, pytorch, torchaudio, torchvision that you want to use for building the image.
+
+You can aswell specify environment variables to customize the configuration of ace step (like the model to use). 
+
+If you dont specify any of them it will just use the default values for ace step.
+
+I did this in order to make it run also on older gpu s that may support lower versions of pytorch etc..
+
 ## Build commands
-build for RTX 2000+ (Ada generation and later)
+### RTX 2000+ (Ada generation and later)
 ```bash
 docker build ^
     -t tizm/ace-cuda:1.1.0-cu12.8.1-py3.11-u22.04 .
 ```
 
-The dockerfile is structured accordingly so that you can specify as arguments the versions of cuda, pytorch, torchaudio, torchvision that you want to use for building the image.
+### GTX 1070 (Pascal generation)
+Since I got an old PC with a GTX 1070 I wanted to give it a try also with this GPU.
 
-If you dont specify any of them it will just use the default values for ace step.
-
-I did this in order to make it run also on older gpu.
-
-## On GTX 1070
 I tried several approaches, but didnt manage to get it to work
 
 Approach 1
@@ -37,6 +43,13 @@ docker build ^
     -t tizm/ace-cuda:2.0.0-cu12.8.1-py3.11-u22.04 .
 ```
 
+using pytorch versions like the 2.1.2 or 2.2.2 it's giving errors on ace step application side.
+
+Still working on this, since running ace step natively on the os (windows 10) works.
+
+The pytorch, torchaudio, torchvision version choosed are the one that ace step is actually using on my PC when running natively.
+
+
 ## Run the container
 To run the container locally
 ```bash
@@ -52,3 +65,13 @@ For example, to use the XL model
 ```
 ACESTEP_CONFIG_PATH=acestep-v15-xl-base
 ```
+
+
+## Images available
+I pushed into docker hub these images. (https://hub.docker.com/repository/docker/tizm/ace-cuda/)
+
+Tags:
+
+ - 1.0.0-cu13.1.2: testing version with cuda 13 (probably not working)
+ - 1.1.0-cu12.8.1-py3.11-u22.04: the build for Ada and later generations
+  
