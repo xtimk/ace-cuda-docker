@@ -30,7 +30,7 @@ docker build ^
     --build-arg PYTORCH_INDEX=https://download.pytorch.org/whl/cu128 ^
     --build-arg TORCHAUDIO_VERSION=2.7.1 ^
     --build-arg TORCHVISION_VERSION=0.22.1 ^
-    -t tizm/ace-cuda:2.0.0-cu12.8.1-py3.11-u22.04 .
+    -t tizm/ace-cuda:test-2.0.0-cu12.8.1-py3.11-u22.04 .
 ```
 
 Approach 2
@@ -40,7 +40,7 @@ docker build ^
     --build-arg PYTORCH_INDEX=https://download.pytorch.org/whl/cu121 ^
     --build-arg TORCHAUDIO_VERSION=2.7.1 ^
     --build-arg TORCHVISION_VERSION=0.22.1 ^
-    -t tizm/ace-cuda:2.0.0-cu12.8.1-py3.11-u22.04 .
+    -t tizm/ace-cuda:test-2.0.0-cu12.8.1-py3.11-u22.04 .
 ```
 
 using pytorch versions like the 2.1.2 or 2.2.2 it's giving errors on ace step application side.
@@ -53,7 +53,7 @@ The pytorch, torchaudio, torchvision version choosed are the one that ace step i
 ## Run the container
 To run the container locally
 ```bash
-docker run --rm --runtime=nvidia --gpus all -p 127.0.0.1:7860:7860 --volume C:\\path\\to\\workspace:/workspace tizm/ace-cuda:2.0.0-cu12.8.1-py3.11-u22.04
+docker run --rm --runtime=nvidia --gpus all -p 127.0.0.1:7860:7860 --volume C:\\path\\to\\workspace:/workspace tizm/ace-cuda:test-2.0.0-cu12.8.1-py3.11-u22.04
 ```
 
 This mounts a bind volume that persist in your host os, so that the models downloaded remains there, and you dont have to re-download each time you restart the container.
@@ -74,4 +74,3 @@ Tags:
 
  - 1.0.0-cu13.1.2: testing version with cuda 13 (probably not working)
  - 1.1.0-cu12.8.1-py3.11-u22.04: the build for Ada and later generations
-  
