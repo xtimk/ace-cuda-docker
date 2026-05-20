@@ -74,3 +74,4 @@ Tags:
 
  - 1.0.0-cu13.1.2: testing version with cuda 13 (probably not working)
  - 1.1.0-cu12.8.1-py3.11-u22.04: the build for Ada and later generations
+ - 1.2.0-cu12.8.1-py3.11-u22.04: the build for Ada and later gens, that can be also deployed on vast ai / runpod.

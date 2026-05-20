@@ -74,6 +74,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         wget \
         libsndfile1 \
         ffmpeg \
+        openssh-server \
     && add-apt-repository ppa:deadsnakes/ppa \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -125,7 +126,7 @@ RUN if [ -n "${PYTORCH_VERSION}" ]; then \
 # PEFT is required for LoRA training but is not in the lockfile's main group.
 # bitsandbytes enables 8-bit AdamW and QLoRA (4-bit base model) — useful on
 # 24 GB GPUs to free VRAM during training.
-RUN uv pip install --python /app/.venv/bin/python peft bitsandbytes && uv cache clean
+RUN uv pip install --python /app/.venv/bin/python peft bitsandbytes jupyterlab && uv cache clean
 
 # ==================== Runtime directories ====================
 RUN mkdir -p /app/checkpoints /app/gradio_outputs /app/output
@@ -162,9 +163,14 @@ ENV WORKSPACE_DIR=/workspace
 # Can be overridden if WORKSPACE_DIR is changed.
 ENV HF_HOME=/workspace/huggingface
 
+# JupyterLab port (set JUPYTER_PORT to override)
+ENV JUPYTER_PORT=8888
+# Leave empty to disable token auth (set to a string to require a token)
+ENV JUPYTER_TOKEN=""
+
 # ==================== Ports ====================
-# 7860 = Gradio web UI | 8001 = REST API server
-EXPOSE 7860 8001
+# 22 = SSH | 7860 = Gradio web UI | 8001 = REST API | 8888 = JupyterLab
+EXPOSE 22 7860 8001 8888
 
 # ==================== Health check ====================
 HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
@@ -176,6 +182,20 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
 COPY <<'ENTRYPOINT_EOF' /app/docker-entrypoint.sh
 #!/usr/bin/env bash
 set -e
+
+# ---------------------------------------------------------------------------
+# SSH setup (vast.ai injects the account public key via PUBLIC_KEY env var)
+# ---------------------------------------------------------------------------
+if [ -n "${PUBLIC_KEY:-}" ]; then
+    mkdir -p /root/.ssh
+    echo "${PUBLIC_KEY}" >> /root/.ssh/authorized_keys
+    chmod 700 /root/.ssh
+    chmod 600 /root/.ssh/authorized_keys
+fi
+ssh-keygen -A 2>/dev/null  # generate host keys if missing
+mkdir -p /run/sshd
+/usr/sbin/sshd              # start SSH daemon in background
+echo "SSH       : started (port 22)"
 
 echo "==========================================="
 echo "  ACE-Step 1.5"
@@ -222,6 +242,22 @@ done
 export HF_HOME="${HF_HOME:-${WORKSPACE_DIR}/huggingface}"
 mkdir -p "${HF_HOME}"
 echo "HF cache  : ${HF_HOME}"
+echo "==========================================="
+
+# ---------------------------------------------------------------------------
+# JupyterLab — start in background before the main service
+# ---------------------------------------------------------------------------
+JUPYTER_PORT="${JUPYTER_PORT:-8888}"
+uv run jupyter lab \
+    --ip=0.0.0.0 \
+    --port="${JUPYTER_PORT}" \
+    --no-browser \
+    --allow-root \
+    --NotebookApp.token="${JUPYTER_TOKEN:-}" \
+    --NotebookApp.password="" \
+    --notebook-dir="${WORKSPACE_DIR}" \
+    > /tmp/jupyter.log 2>&1 &
+echo "JupyterLab: started on port ${JUPYTER_PORT} (log: /tmp/jupyter.log)"
 echo "==========================================="
 
 # Build --init_service flags
