@@ -165,8 +165,7 @@ ENV HF_HOME=/workspace/huggingface
 
 # JupyterLab port (set JUPYTER_PORT to override)
 ENV JUPYTER_PORT=8888
-# Leave empty to disable token auth (set to a string to require a token)
-ENV JUPYTER_TOKEN=""
+# Pass JUPYTER_TOKEN at runtime to require token auth; omit for no auth.
 
 # ==================== Ports ====================
 # 22 = SSH | 7860 = Gradio web UI | 8001 = REST API | 8888 = JupyterLab
